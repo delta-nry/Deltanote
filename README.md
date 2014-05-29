@@ -11,4 +11,4 @@ Deltanote is a Qt application. Build and run using Qt Creator or an equivalent p
 Your notes are automatically saved while typing.
 
 
-NOTE: Deltanote currently saves in "$HOME/deltanotetest.txt"; to be changed at a later date.
+NOTE: Deltanote currently saves in "$HOME/.deltanote"; to be changed at a later date.

@@ -36,8 +36,12 @@ Deltanote::~Deltanote()
 void Deltanote::on_textEdit_textChanged()
 {
     QString homeDir = QDir::homePath();
-    QString filePath = homeDir.append("/deltanotetest.txt");
+    QString filePath = homeDir.append("/.deltanote");
+    if (!QDir(filePath).exists()) {
+        QDir(filePath).mkpath(".");
+    }
 
+    filePath = homeDir.append("/1");
     if (!filePath.isEmpty()) {
        QFile file(filePath);
        if (!file.open(QIODevice::WriteOnly)) {
