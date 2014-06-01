@@ -34,7 +34,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="splitter_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -58,7 +58,20 @@
         </size>
        </property>
       </widget>
-      <widget class="QTextEdit" name="textEdit"/>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QLineEdit" name="lineEdit">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
+       </widget>
+       <widget class="QTextEdit" name="textEdit"/>
+      </widget>
      </widget>
     </item>
    </layout>
