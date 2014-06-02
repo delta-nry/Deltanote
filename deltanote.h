@@ -18,6 +18,7 @@
 #define DELTANOTE_H
 
 #include <QMainWindow>
+#include <QFileSystemModel>
 
 namespace Ui {
 class Deltanote;
@@ -36,6 +37,7 @@ private slots:
 
 private:
     Ui::Deltanote *ui;
+    QFileSystemModel *fsModel;
 };
 
 #endif // DELTANOTE_H

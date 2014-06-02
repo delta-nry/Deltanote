@@ -21,11 +21,32 @@
 #include "deltanote.h"
 #include "ui_deltanote.h"
 
+// NOTE: Consider changing to enum class for C++11
+enum TreeViewfsModelColumns {TVFSMC_NAME, TVFSMC_SIZE, TVFSMC_TYPE,
+                             TVFSMC_DATE_MODIFIED};
+static QString currentFilePath;
+
 Deltanote::Deltanote(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Deltanote)
 {
     ui->setupUi(this);
+    ui->splitter_2->setStretchFactor(1,1);
+
+    fsModel = new QFileSystemModel(this);
+    fsModel->setReadOnly(true);
+
+    QString homeDir = QDir::homePath();
+    currentFilePath = homeDir.append("/.deltanote");
+    if (!QDir(currentFilePath).exists()) {
+        QDir(currentFilePath).mkpath(".");
+    }
+    fsModel->setRootPath(currentFilePath);
+
+    ui->treeView->setModel(fsModel);
+    ui->treeView->setRootIndex(fsModel->index(currentFilePath));
+    ui->treeView->hideColumn(TVFSMC_SIZE);
+    ui->treeView->hideColumn(TVFSMC_TYPE);
 }
 
 Deltanote::~Deltanote()
@@ -36,14 +57,14 @@ Deltanote::~Deltanote()
 void Deltanote::on_textEdit_textChanged()
 {
     QString homeDir = QDir::homePath();
-    QString filePath = homeDir.append("/.deltanote");
-    if (!QDir(filePath).exists()) {
-        QDir(filePath).mkpath(".");
+    currentFilePath = homeDir.append("/.deltanote");
+    if (!QDir(currentFilePath).exists()) {
+        QDir(currentFilePath).mkpath(".");
     }
 
-    filePath = homeDir.append("/1");
-    if (!filePath.isEmpty()) {
-       QFile file(filePath);
+    currentFilePath = homeDir.append("/Note");
+    if (!currentFilePath.isEmpty()) {
+       QFile file(currentFilePath);
        if (!file.open(QIODevice::WriteOnly)) {
            // TODO: Improve error handling
            return;
