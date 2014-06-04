@@ -1,4 +1,4 @@
-//    deltanote.cpp: Source file for Deltanote class
+﻿//    deltanote.cpp: Source file for Deltanote class
 //    Copyright (C) 2014  Nathan Robert Yee
 
 //    This program is free software: you can redistribute it and/or modify
@@ -24,29 +24,52 @@
 // NOTE: Consider changing to enum class for C++11
 enum TreeViewfsModelColumns {TVFSMC_NAME, TVFSMC_SIZE, TVFSMC_TYPE,
                              TVFSMC_DATE_MODIFIED};
-static QString currentFilePath;
+// Only one file path (and therefore note) can currently be active at a time
+static QString currentNotePath;
+// Stores the name of the currently active note
+static QString currentNoteName;
 
 Deltanote::Deltanote(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Deltanote)
 {
     ui->setupUi(this);
+    // Set initial splitter ratio
     ui->splitter_2->setStretchFactor(1,1);
 
     fsModel = new QFileSystemModel(this);
     fsModel->setReadOnly(true);
 
-    QString homeDir = QDir::homePath();
-    currentFilePath = homeDir.append("/.deltanote");
-    if (!QDir(currentFilePath).exists()) {
-        QDir(currentFilePath).mkpath(".");
-    }
-    fsModel->setRootPath(currentFilePath);
+    setMainCurrentNotePath();
+    fsModel->setRootPath(currentNotePath);
 
     ui->treeView->setModel(fsModel);
-    ui->treeView->setRootIndex(fsModel->index(currentFilePath));
+    ui->treeView->setRootIndex(fsModel->index(currentNotePath));
     ui->treeView->hideColumn(TVFSMC_SIZE);
     ui->treeView->hideColumn(TVFSMC_TYPE);
+    // XXX: Do not hide date modified column once QFileSystemModel file
+    // modification bug is fixed
+    ui->treeView->hideColumn(TVFSMC_DATE_MODIFIED);
+
+    // BEGIN BLOCK: Load previous note into QTextEdit and QLineEdit on init
+    setMainCurrentNotePath();
+    // XXX: Hardcoded value
+    currentNoteName = "/Note";
+    currentNotePath.append(currentNoteName);
+    if (!currentNotePath.isEmpty()) {
+       QFile file(currentNotePath);
+       if (!file.open(QIODevice::ReadOnly)) {
+           // TODO: Improve error handling
+           return;
+       } else {
+           QTextStream textStream(&file);
+           ui->textEdit->setText(textStream.readAll());
+           ui->lineEdit->setText(currentNoteName);
+           textStream.flush();
+           file.close();
+       }
+    }
+    // END BLOCK
 }
 
 Deltanote::~Deltanote()
@@ -56,23 +79,33 @@ Deltanote::~Deltanote()
 
 void Deltanote::on_textEdit_textChanged()
 {
-    QString homeDir = QDir::homePath();
-    currentFilePath = homeDir.append("/.deltanote");
-    if (!QDir(currentFilePath).exists()) {
-        QDir(currentFilePath).mkpath(".");
+    setMainCurrentNotePath();
+    if (currentNoteName.isEmpty()) {
+        // TODO: Improve error handling
+        return;
+    } else {
+        currentNotePath.append(currentNoteName);
+        if (!currentNotePath.isEmpty()) {
+           QFile file(currentNotePath);
+           if (!file.open(QIODevice::WriteOnly)) {
+               // TODO: Improve error handling
+               return;
+           } else {
+               QTextStream textStream(&file);
+               textStream << ui->textEdit->toPlainText();
+               ui->lineEdit->setText(currentNoteName);
+               textStream.flush();
+               file.close();
+           }
+        }
     }
+}
 
-    currentFilePath = homeDir.append("/Note");
-    if (!currentFilePath.isEmpty()) {
-       QFile file(currentFilePath);
-       if (!file.open(QIODevice::WriteOnly)) {
-           // TODO: Improve error handling
-           return;
-       } else {
-           QTextStream textStream(&file);
-           textStream << ui->textEdit->toPlainText();
-           textStream.flush();
-           file.close();
-       }
+// Sets currentNotePath to [HOME]/.deltanote
+void Deltanote::setMainCurrentNotePath() {
+    QString homeDir = QDir::homePath();
+    currentNotePath = homeDir.append("/.deltanote");
+    if (!QDir(currentNotePath).exists()) {
+        QDir(currentNotePath).mkpath(".");
     }
 }

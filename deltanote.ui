@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>640</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -34,14 +34,14 @@
         <item>
          <widget class="QTreeView" name="treeView">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>200</width>
+            <width>0</width>
             <height>0</height>
            </size>
           </property>
@@ -50,6 +50,9 @@
             <width>16777215</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="headerHidden">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -99,7 +102,7 @@
        </property>
        <widget class="QLineEdit" name="lineEdit">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="maximumSize">
          <size>
@@ -122,7 +125,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>640</width>
      <height>22</height>
     </rect>
    </property>

@@ -38,6 +38,8 @@ private slots:
 private:
     Ui::Deltanote *ui;
     QFileSystemModel *fsModel;
+
+    void setMainCurrentNotePath();
 };
 
 #endif // DELTANOTE_H
