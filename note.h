@@ -1,4 +1,4 @@
-//    deltanote.h: Header file for Deltanote class
+//    note.h: Header file for Note class
 //    Copyright (C) 2014  Nathan Robert Yee
 
 //    This program is free software: you can redistribute it and/or modify
@@ -14,35 +14,28 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef DELTANOTE_H
-#define DELTANOTE_H
+#ifndef NOTE_H
+#define NOTE_H
 
-#include <QMainWindow>
 #include <QFileSystemModel>
+#include <QTextStream>
 
-namespace Ui {
-class Deltanote;
-}
-
-class Deltanote : public QMainWindow
+class Note
 {
-    Q_OBJECT
-
 public:
-    explicit Deltanote(QWidget *parent = 0);
-    ~Deltanote();
-
-private slots:
-    void on_textEdit_textChanged();
-
-    void on_lineEdit_editingFinished();
+    Note();
+    Note(QString pathToNote);
+    QString name();
+    QString filepath();
+    QString read();
+    bool write(QString text);
+    bool rename(QString name);
 
 private:
-    Ui::Deltanote *ui;
-    QFileSystemModel *fsModel;
+    QString noteFilepath;
 
     QString getBaseNotePath();
     QString getLastNoteSettingsPath();
 };
 
-#endif // DELTANOTE_H
+#endif // NOTE_H

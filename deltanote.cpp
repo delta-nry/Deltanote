@@ -15,19 +15,20 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QFile>
+
 #include <QTextStream>
 #include <QDir>
 
 #include "deltanote.h"
 #include "ui_deltanote.h"
+#include "note.h"
 
 // NOTE: Consider changing to enum class for C++11
 enum TreeViewfsModelColumns {TVFSMC_NAME, TVFSMC_SIZE, TVFSMC_TYPE,
                              TVFSMC_DATE_MODIFIED};
-// Only one file path (and therefore note) can currently be active at a time
-static QString currentNotePath;
-// Stores the name of the currently active note
-static QString currentNoteName;
+
+// Only one note (and therefore one filepath) can currently be active at a time
+static Note activeNote;
 
 Deltanote::Deltanote(QWidget *parent) :
     QMainWindow(parent),
@@ -36,76 +37,78 @@ Deltanote::Deltanote(QWidget *parent) :
     ui->setupUi(this);
     // Set initial splitter ratio
     ui->splitter_2->setStretchFactor(1,1);
-
     fsModel = new QFileSystemModel(this);
     fsModel->setReadOnly(true);
-
-    setMainCurrentNotePath();
-    fsModel->setRootPath(currentNotePath);
-
+    fsModel->setRootPath(getBaseNotePath());
     ui->treeView->setModel(fsModel);
-    ui->treeView->setRootIndex(fsModel->index(currentNotePath));
+    ui->treeView->setRootIndex(fsModel->index(getBaseNotePath()));
     ui->treeView->hideColumn(TVFSMC_SIZE);
     ui->treeView->hideColumn(TVFSMC_TYPE);
     // XXX: Do not hide date modified column once QFileSystemModel file
     // modification bug is fixed
     ui->treeView->hideColumn(TVFSMC_DATE_MODIFIED);
 
-    // BEGIN BLOCK: Load previous note into QTextEdit and QLineEdit on init
-    setMainCurrentNotePath();
-    // XXX: Hardcoded value
-    currentNoteName = "/Note";
-    currentNotePath.append(currentNoteName);
-    if (!currentNotePath.isEmpty()) {
-       QFile file(currentNotePath);
-       if (!file.open(QIODevice::ReadOnly)) {
-           // TODO: Improve error handling
-           return;
-       } else {
-           QTextStream textStream(&file);
-           ui->textEdit->setText(textStream.readAll());
-           ui->lineEdit->setText(currentNoteName);
-           textStream.flush();
-           file.close();
-       }
+    // Attempt to load last recently used note, else create a new note
+    QString loadSettingsPath = getLastNoteSettingsPath();
+    if (!loadSettingsPath.isEmpty()) {
+        QFile file(loadSettingsPath);
+        if (file.open(QIODevice::ReadOnly)) {
+            QTextStream textStream(&file);
+            QString lastNotePath = textStream.readAll();
+            if (QDir(lastNotePath).exists()) {
+                activeNote.rename(lastNotePath);
+                ui->lineEdit->setText(activeNote.name());
+                ui->textEdit->setText(activeNote.read());
+                return;
+            }
+        }
     }
-    // END BLOCK
+    // Auto-load failed; create default note "Note" if it does not exist and
+    // open it
+    ui->lineEdit->setText(activeNote.name());
+    ui->textEdit->setText(activeNote.read());
 }
 
 Deltanote::~Deltanote()
 {
+    // Last recently active note's filepath into
+    // [HOME]/.config/deltanote/lastnote to be auto-loaded on next init
+    QString saveSettingsPath = getLastNoteSettingsPath();
+    if (!saveSettingsPath.isEmpty()) {
+        QFile file(saveSettingsPath);
+        if (!file.open(QIODevice::WriteOnly)) {
+           // TODO: Improve error handling
+           return;
+        } else {
+            QTextStream ts(&file);
+            ts << activeNote.filepath();
+            ts.flush();
+            file.close();
+        }
+    }
+
     delete ui;
 }
 
 void Deltanote::on_textEdit_textChanged()
 {
-    setMainCurrentNotePath();
-    if (currentNoteName.isEmpty()) {
-        // TODO: Improve error handling
-        return;
-    } else {
-        currentNotePath.append(currentNoteName);
-        if (!currentNotePath.isEmpty()) {
-           QFile file(currentNotePath);
-           if (!file.open(QIODevice::WriteOnly)) {
-               // TODO: Improve error handling
-               return;
-           } else {
-               QTextStream textStream(&file);
-               textStream << ui->textEdit->toPlainText();
-               ui->lineEdit->setText(currentNoteName);
-               textStream.flush();
-               file.close();
-           }
-        }
-    }
+    activeNote.write(ui->textEdit->toPlainText());
 }
 
-// Sets currentNotePath to [HOME]/.deltanote
-void Deltanote::setMainCurrentNotePath() {
-    QString homeDir = QDir::homePath();
-    currentNotePath = homeDir.append("/.deltanote");
+void Deltanote::on_lineEdit_editingFinished()
+{
+    activeNote.rename(ui->lineEdit->displayText());
+}
+
+// BaseNotePath is [HOME]/.deltanote
+QString Deltanote::getBaseNotePath() {
+    QString currentNotePath = QDir::homePath() + "/.deltanote";
     if (!QDir(currentNotePath).exists()) {
         QDir(currentNotePath).mkpath(".");
     }
+    return currentNotePath;
+}
+
+QString Deltanote::getLastNoteSettingsPath() {
+    return (QDir::homePath() + "/.config/deltanote/lastnote");
 }

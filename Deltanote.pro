@@ -29,8 +29,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        deltanote.cpp
+        deltanote.cpp \
+    note.cpp
 
-HEADERS  += deltanote.h
+HEADERS  += deltanote.h \
+    note.h
 
 FORMS    += deltanote.ui
