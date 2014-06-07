@@ -3,6 +3,11 @@ Deltanote
 
 Cross-platform note-taking application
 
+Notice
+------
+Deltanote is still in early stages of development and is not yet ready for public use.
+Feel free to contribute if you wish to help us towards our first stable release.
+
 Usage
 -----
 Deltanote is a Qt application. Build and run using Qt Creator or an equivalent program.
@@ -11,4 +16,4 @@ Deltanote is a Qt application. Build and run using Qt Creator or an equivalent p
 Your notes are automatically saved while typing.
 
 
-NOTE: Deltanote currently saves in "$HOME/.deltanote"; to be changed at a later date.
+Deltanote saves notes into "[HOME]/.deltanote".
