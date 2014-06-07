@@ -24,7 +24,7 @@ class Note
 {
 public:
     Note();
-    Note(QString pathToNote);
+    Note(QDir path);
     QString name();
     QString filepath();
     QString read();
@@ -32,7 +32,7 @@ public:
     bool rename(QString name);
 
 private:
-    QString noteFilepath;
+    QDir noteFilepath;
 
     QString getBaseNotePath();
     QString getLastNoteSettingsPath();

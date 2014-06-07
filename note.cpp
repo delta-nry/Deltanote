@@ -28,25 +28,28 @@ Note::Note()
     noteFilepath = getBaseNotePath() + "/Note";
 }
 
-// Note path starts at BaseNotePath (e.g. pass in "Note" to set filepath to
-// "[BaseNotePath]/Note"
-Note::Note(QString pathToNote) {
-    noteFilepath = getBaseNotePath() + pathToNote;
+// noteFilepath must be an absolute filepath
+Note::Note(QDir path)
+{
+    noteFilepath = path;
 }
 
 // Returns name of notefile without preceding path
-QString Note::name() {
-    return noteFilepath.section("/", -1, -1);
+QString Note::name()
+{
+    return noteFilepath.path().section("/", -1, -1);
 }
 
-QString Note::filepath() {
-    return noteFilepath;
+QString Note::filepath()
+{
+    return noteFilepath.path();
 }
 
 // Returns empty string on error
-QString Note::read() {
-    if (!noteFilepath.isEmpty() && !noteFilepath.isNull()) {
-        QFile file(noteFilepath);
+QString Note::read()
+{
+    if (!(noteFilepath.path()).isEmpty() && !(noteFilepath.path().isNull())) {
+        QFile file(noteFilepath.path());
         if (file.open(QIODevice::ReadOnly)) {
             QTextStream ts(&file);
             QString readContent = ts.readAll();
@@ -59,9 +62,10 @@ QString Note::read() {
 }
 
 // Abort write and return false on error
-bool Note::write(QString text) {
-    if (!noteFilepath.isEmpty() && !noteFilepath.isNull()) {
-        QFile file(noteFilepath);
+bool Note::write(QString text)
+{
+    if (!(noteFilepath.path()).isEmpty() && !(noteFilepath.path().isNull())) {
+        QFile file(noteFilepath.path());
         if (file.open(QIODevice::WriteOnly)) {
             QTextStream ts(&file);
             ts << text;
@@ -73,22 +77,32 @@ bool Note::write(QString text) {
     return false;
 }
 
-// Abort rename on error
-bool Note::rename(QString name) {
-    if (!noteFilepath.isEmpty() && !noteFilepath.isNull()) {
-        QFile file(noteFilepath);
-        if (file.rename(name)) {
-            return true;
+// Abort rename and return false on error
+bool Note::rename(QString name)
+{
+    if (!(noteFilepath.path()).isEmpty() && !(noteFilepath.path().isNull())) {
+        QFile file(noteFilepath.path());
+        QStringList temp = noteFilepath.path().split("/");
+        temp.removeLast();
+        QString noteParentPath = temp.join("/");
+        if (file.rename(noteFilepath.path(),
+                        noteParentPath + "/" + name)) {
+            if (noteFilepath.exists(noteParentPath + "/" + name)) {
+                noteFilepath.setPath(noteParentPath + "/" + name);
+                return true;
+            }
         }
     }
     return false;
 }
 
 // BaseNotePath is [HOME]/.deltanote
-QString Note::getBaseNotePath() {
+QString Note::getBaseNotePath()
+{
     return (QDir::homePath() + "/.deltanote");
 }
 
-QString Note::getLastNoteSettingsPath() {
+QString Note::getLastNoteSettingsPath()
+{
     return (QDir::homePath() + "/.config/deltanote/lastnote");
 }

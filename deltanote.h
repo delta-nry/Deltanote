@@ -20,6 +20,8 @@
 #include <QMainWindow>
 #include <QFileSystemModel>
 
+#include "note.h"
+
 namespace Ui {
 class Deltanote;
 }
@@ -41,6 +43,8 @@ private:
     Ui::Deltanote *ui;
     QFileSystemModel *fsModel;
 
+    bool openNote(QString filepath);
+    bool saveNote();
     QString getBaseNotePath();
     QString getLastNoteSettingsPath();
 };
