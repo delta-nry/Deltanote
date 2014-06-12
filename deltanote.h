@@ -45,6 +45,7 @@ private slots:
     void on_textEdit_textChanged();
     void on_lineEdit_editingFinished();
     void on_toolButton_3_clicked();
+    void on_toolButton_clicked();
     void on_treeView_clicked(const QModelIndex &index);
 
 private:
@@ -53,7 +54,8 @@ private:
 
     bool openFromFile(QString filepath);
     bool recordLastNote();
-    bool switchNote(QDir replacement);
+    bool switchNote(QDir path);
+    bool removeNote(QString path);
     QString getBaseNotePath();
     QString getLastNoteSettingsPath();
 };

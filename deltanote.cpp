@@ -22,9 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <QFile>
-
 #include <QTextStream>
 #include <QDir>
+#include <QDateTime>
 
 #include "deltanote.h"
 #include "ui_deltanote.h"
@@ -156,6 +156,16 @@ void Deltanote::on_toolButton_3_clicked()
 }
 
 /*!
+ * \brief Attempts to remove the current active note.
+ */
+void Deltanote::on_toolButton_clicked()
+{
+    if (!removeNote(activeNote.path())) {
+        // TODO: Error check
+    }
+}
+
+/*!
  * \brief Attempts to open the selected note.
  *
  * Attempts to open the selected note and if successful makes it the active
@@ -181,6 +191,8 @@ void Deltanote::on_treeView_clicked(const QModelIndex &index)
  * successful makes it the active note and returns true. Returns false if the
  * open operation fails.
  *
+ * \warning The file at filepath must only contain an absolute filepath.
+ *
  * \param filepath The location of the file to be opened.
  *
  * \return true on success, false otherwise.
@@ -196,6 +208,7 @@ bool Deltanote::openFromFile(QString filepath)
             QString loadpath = ts.readAll().simplified();
             ts.flush();
             if (QDir(getBaseNotePath()).exists(loadpath)) {
+                // loadpath must be an absolute filepath
                 activeNote = Note(QDir(loadpath));
                 ui->lineEdit->setText(activeNote.name());
                 ui->textEdit->setText(activeNote.read());
@@ -250,14 +263,14 @@ bool Deltanote::recordLastNote()
  * \warning Always returns true; to be fixed in the future. Undefined behavior
  * if note switching or UI updating fail.
  *
- * \param replacement The path to the note which is to replace the current
+ * \param path The absolute path to the note which is to replace the current
  * active note.
  *
  * \return true on success, true otherwise.
  */
-bool Deltanote::switchNote(QDir replacement)
+bool Deltanote::switchNote(QDir path)
 {
-    activeNote = Note(replacement);
+    activeNote = Note(path);
     // TODO: Check if note successfully loaded
     ui->lineEdit->setText(activeNote.name());
     ui->textEdit->setText(activeNote.read());
@@ -267,6 +280,64 @@ bool Deltanote::switchNote(QDir replacement)
                 fsModel->index(activeNote.path()));
     return true;
     // TODO: Add return false on error
+}
+
+/*!
+ * \brief Removes the note at a given path.
+ *
+ * If the remove operation is successful and files exist in the parent
+ * directory of path after the operation, the active note is switched to the
+ * note in the directory with the most recent date modified attribute and is
+ * opened. If no notes exist in the directory after the note is removed, the
+ * note "New Note" is created, becomes the active note and is opened. If the
+ * remove operation fails, no changes are made to the filesystem.
+ *
+ * \param path The absolute path to the note to be deleted.
+ *
+ * \return true on success, false otherwise.
+ */
+// NOTE: Consider changing to: "If no notes exist on the filesystem after the
+// note is removed, the note name and note contents buffers are cleared."
+// instead of creating/opening "New Note"
+bool Deltanote::removeNote(QString path)
+{
+    if (QFile(path).exists()) {
+        if (QFile(path).remove()) {
+            QDir dir = QDir(path);
+            dir.cdUp();
+            QFileInfoList fil = dir.entryInfoList(QDir::Files);
+            // If fil holds one or zero notes, create and/or open "New Note"
+            if (fil.size() == 0) {
+                if (!switchNote(QDir(getBaseNotePath() + "/New Note"))) {
+                // TODO: Error check
+                    return false;
+                }
+                return true;
+            } else if (fil.size() == 1) {
+                if (!switchNote(QDir(fil.at(0).absoluteFilePath()))) {
+                // TODO: Error check
+                    return false;
+                }
+                return true;
+            }
+            // Check for the most-recently-modified file in path's parent
+            // directory
+            QFileInfo mostRecent = fil.at(0);
+            QFileInfo checkRecent;
+            for (int i = 1; i < fil.size(); i++) {
+                checkRecent = fil.at(i);
+                if (mostRecent.lastModified() < checkRecent.lastModified()) {
+                    mostRecent = checkRecent;
+                }
+            }
+            if (!switchNote(QDir(mostRecent.absoluteFilePath()))) {
+                // TODO: Error check
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
 /*!

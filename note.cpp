@@ -31,11 +31,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 Note::Note()
 {
-    noteFilepath = getBaseNotePath() + "/New Note";
+    noteFilepath = QDir(getBaseNotePath() + "/New Note");
 }
 
 /*!
- * \brief Constructor setting path of new note to "[HOME]/[path]".
+ * \brief Constructor setting path of new note to "path".
  *
  * \param path Absolute filepath of the location of the new note object.
  */
@@ -51,7 +51,7 @@ Note::Note(QDir path)
  */
 QString Note::name()
 {
-    return noteFilepath.path().section("/", -1, -1);
+    return noteFilepath.absolutePath().section("/", -1, -1);
 }
 
 /*!
@@ -63,7 +63,7 @@ QString Note::name()
  */
 QString Note::path()
 {
-    return noteFilepath.path();
+    return noteFilepath.absolutePath();
 }
 
 /*!
