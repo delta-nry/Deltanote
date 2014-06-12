@@ -30,9 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ui_deltanote.h"
 #include "note.h"
 
-// NOTE: Consider changing to enum class for C++11
-enum TreeViewfsModelColumns {TVFSMC_NAME, TVFSMC_SIZE, TVFSMC_TYPE,
-                             TVFSMC_DATE_MODIFIED};
 // Only one note (and therefore one filepath) can currently be active at a time
 static Note activeNote;
 
@@ -50,6 +47,9 @@ Deltanote::Deltanote(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Deltanote)
 {
+    // NOTE: Consider changing to enum class for C++11
+    enum TreeViewfsModelColumns {TVFSMC_NAME, TVFSMC_SIZE, TVFSMC_TYPE,
+                                 TVFSMC_DATE_MODIFIED};
     ui->setupUi(this);
     // Set initial splitter ratio
     ui->splitter_2->setStretchFactor(1,1);
@@ -73,7 +73,8 @@ Deltanote::Deltanote(QWidget *parent) :
         // Auto-load failed; attempt to create default note "New Note" in
         // BaseRootPath if it does not exist, then open it
         if (!switchNote(QDir(getBaseNotePath() + "/New Note"))) {
-            // TODO: Error check
+            qFatal("Initialization note loading failed");
+            QApplication::quit();
         }
     }
 }
@@ -143,14 +144,14 @@ void Deltanote::on_toolButton_3_clicked()
                                                 + QString::number(i))) {
                 if (!switchNote(QDir(getBaseNotePath() + "/New Note "
                                      + QString::number(i)))) {
-                    // TODO: Error check
+                    qWarning("New note creation failed");
                 }
                 break;
             }
         }
     } else {
         if (!switchNote(QDir(getBaseNotePath() + "/New Note"))) {
-            // TODO: Error check
+            qWarning("New note creation failed");
         }
     }
 }
@@ -161,7 +162,7 @@ void Deltanote::on_toolButton_3_clicked()
 void Deltanote::on_toolButton_clicked()
 {
     if (!removeNote(activeNote.path())) {
-        // TODO: Error check
+        qWarning("Note removal failed");
     }
 }
 
@@ -180,7 +181,7 @@ void Deltanote::on_treeView_clicked(const QModelIndex &index)
     // already the active note
     activeNote.write(ui->textEdit->toPlainText());
     if (!switchNote(QDir(fsModel->fileInfo(index).absoluteFilePath()))) {
-        // TODO: Error check
+        qWarning("Note opening failed");
     }
 }
 
@@ -213,7 +214,7 @@ bool Deltanote::openFromFile(QString filepath)
                 ui->lineEdit->setText(activeNote.name());
                 ui->textEdit->setText(activeNote.read());
                 // Select new file in sidebar
-                // TODO: Error check
+                // TODO: Check if setCurrentIndex is successful
                 ui->treeView->setCurrentIndex(
                             fsModel->index(activeNote.path()));
                 file.close();
@@ -271,11 +272,10 @@ bool Deltanote::recordLastNote()
 bool Deltanote::switchNote(QDir path)
 {
     activeNote = Note(path);
-    // TODO: Check if note successfully loaded
     ui->lineEdit->setText(activeNote.name());
     ui->textEdit->setText(activeNote.read());
     // Select new file in sidebar
-    // TODO: Error check
+    // TODO: Check if setCurrentIndex is successful
     ui->treeView->setCurrentIndex(
                 fsModel->index(activeNote.path()));
     return true;
@@ -309,13 +309,13 @@ bool Deltanote::removeNote(QString path)
             // If fil holds one or zero notes, create and/or open "New Note"
             if (fil.size() == 0) {
                 if (!switchNote(QDir(getBaseNotePath() + "/New Note"))) {
-                // TODO: Error check
+                    qWarning("Note creation/opening failed");
                     return false;
                 }
                 return true;
             } else if (fil.size() == 1) {
                 if (!switchNote(QDir(fil.at(0).absoluteFilePath()))) {
-                // TODO: Error check
+                    qWarning("Note switching failed");
                     return false;
                 }
                 return true;
@@ -331,7 +331,7 @@ bool Deltanote::removeNote(QString path)
                 }
             }
             if (!switchNote(QDir(mostRecent.absoluteFilePath()))) {
-                // TODO: Error check
+                qWarning("Note switching failed");
                 return false;
             }
             return true;
