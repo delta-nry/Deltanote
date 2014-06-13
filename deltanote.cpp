@@ -63,9 +63,6 @@ Deltanote::Deltanote(QWidget *parent) :
     ui->treeView->setRootIndex(fsModel->index(getBaseNotePath()));
     ui->treeView->hideColumn(TVFSMC_SIZE);
     ui->treeView->hideColumn(TVFSMC_TYPE);
-    // XXX: Do not hide date modified column once QFileSystemModel file
-    // modification bug is fixed
-    ui->treeView->hideColumn(TVFSMC_DATE_MODIFIED);
 
     // Attempt to load last recently used note, else create a new note
     QString openSettingsPath = getLastNoteSettingsPath();
@@ -87,6 +84,7 @@ Deltanote::Deltanote(QWidget *parent) :
 Deltanote::~Deltanote()
 {
     if (!recordLastNote()) {
+        qWarning("last-recently-used note not recorded");
         QApplication::quit();
     }
     delete ui;
@@ -251,7 +249,12 @@ bool Deltanote::recordLastNote()
             file.close();
             return true;
         }
+        qWarning("Deltanote::recordLastNote(): "
+                 "Could not open file in lastNoteSettingsPath");
     }
+    qWarning("Deltanote::recordLastNote(): "
+             "Could not find lastNoteSettingsPath: %s"
+             , saveSettingsPath.toStdString().c_str());
     return false;
 }
 
@@ -366,5 +369,11 @@ QString Deltanote::getBaseNotePath()
  */
 QString Deltanote::getLastNoteSettingsPath()
 {
-    return (QDir::homePath() + "/.config/deltanote/lastnote");
+    QString lastNoteSettingsPath =
+            QDir::homePath() + "/.config/deltanote";
+    if (!QDir(lastNoteSettingsPath).exists()) {
+        QDir(lastNoteSettingsPath).mkpath(".");
+    }
+    lastNoteSettingsPath.append("/lastnote");
+    return lastNoteSettingsPath;
 }
