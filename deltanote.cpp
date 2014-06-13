@@ -128,7 +128,7 @@ void Deltanote::on_lineEdit_editingFinished()
  * note is created, and if note opening fails, the previous active note remains
  * the active note with its contents loaded in the UI.
  */
-void Deltanote::on_toolButton_3_clicked()
+void Deltanote::on_addNoteButton_clicked()
 {
     // Save active note and load note "New Note" or create it if it does not
     // exist
@@ -157,7 +157,7 @@ void Deltanote::on_toolButton_3_clicked()
 /*!
  * \brief Attempts to remove the current active note.
  */
-void Deltanote::on_toolButton_clicked()
+void Deltanote::on_deleteButton_clicked()
 {
     if (!removeNote(activeNote.path())) {
         qWarning("Note removal failed");
