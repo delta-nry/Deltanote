@@ -30,9 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ui_deltanote.h"
 #include "note.h"
 
-// Only one note (and therefore one filepath) can currently be active at a time
-static Note activeNote;
-
 /*!
  * \brief Constructor of Deltanote application.
  *
@@ -143,13 +140,19 @@ void Deltanote::on_addNoteButton_clicked()
                 if (!switchNote(QDir(getBaseNotePath() + "/New Note "
                                      + QString::number(i)))) {
                     qWarning("New note creation failed");
+                    return;
                 }
+                // Select new file in sidebar
+                // TODO: Check if setCurrentIndex is successful
+                ui->treeView->setCurrentIndex(
+                            fsModel->index(activeNote.path()));
                 break;
             }
         }
     } else {
         if (!switchNote(QDir(getBaseNotePath() + "/New Note"))) {
             qWarning("New note creation failed");
+            return;
         }
     }
 }
@@ -175,7 +178,7 @@ void Deltanote::on_deleteButton_clicked()
  */
 void Deltanote::on_treeView_clicked(const QModelIndex &index)
 {
-    // Check which note is highlighted in the sidebar and load it if it is not
+    // Check which note is selected in the sidebar and load it if it is not
     // already the active note
     activeNote.write(ui->textEdit->toPlainText());
     if (!switchNote(QDir(fsModel->fileInfo(index).absoluteFilePath()))) {
@@ -277,10 +280,6 @@ bool Deltanote::switchNote(QDir path)
     activeNote = Note(path);
     ui->lineEdit->setText(activeNote.name());
     ui->textEdit->setText(activeNote.read());
-    // Select new file in sidebar
-    // TODO: Check if setCurrentIndex is successful
-    ui->treeView->setCurrentIndex(
-                fsModel->index(activeNote.path()));
     return true;
     // TODO: Add return false on error
 }
@@ -315,6 +314,10 @@ bool Deltanote::removeNote(QString path)
                     qWarning("Note creation/opening failed");
                     return false;
                 }
+                // Select new file in sidebar
+                // TODO: Check if setCurrentIndex is successful
+                ui->treeView->setCurrentIndex(
+                            fsModel->index(activeNote.path()));
                 return true;
             } else if (fil.size() == 1) {
                 if (!switchNote(QDir(fil.at(0).absoluteFilePath()))) {

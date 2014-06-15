@@ -51,6 +51,9 @@ private slots:
 private:
     Ui::Deltanote *ui;
     QFileSystemModel *fsModel;
+    // Only one note (and therefore one filepath) can currently be active at a
+    // time
+    Note activeNote;
 
     bool openFromFile(QString filepath);
     bool recordLastNote();
