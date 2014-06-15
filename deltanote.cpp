@@ -65,6 +65,9 @@ Deltanote::Deltanote(QWidget *parent) :
     ui->treeView->setRootIndex(fsModel->index(getBaseNotePath()));
     ui->treeView->hideColumn(TVFSMC_SIZE);
     ui->treeView->hideColumn(TVFSMC_TYPE);
+    // XXX: Hide date modified column until QFileSystemWatcher can be
+    // manually updated
+    ui->treeView->hideColumn(TVFSMC_DATE_MODIFIED);
 
     // Attempt to load last recently used note, else create a new note
     QString openSettingsPath = getLastNoteSettingsPath();
@@ -173,11 +176,14 @@ void Deltanote::on_deleteButton_clicked()
 }
 
 /*!
- * \brief Attempts to open the selected note.
+ * \brief Attempts to open the selected note or folder.
  *
- * Attempts to open the selected note and if successful makes it the active
- * note. If the note is already the active note or note opening fails, then the
- * previously active note is selected and its contents remain in the UI.
+ * Saves the current active note and attempts to open the selected note or
+ * folder. If the selected item is a note, if the open operation is successful,
+ * the selected note becomes the active note. If the note is already the active
+ * note or note opening fails, then the previously active note is selected and
+ * its contents remain in the UI. If the selected item is a folder, no action
+ * is taken.
  *
  * \param &index The selected file in a QTreeView.
  */
@@ -186,9 +192,18 @@ void Deltanote::on_treeView_clicked(const QModelIndex &index)
     // Check which note is selected in the sidebar and load it if it is not
     // already the active note
     activeNote.write(ui->textEdit->toPlainText());
-    if (!switchNote(QDir(fsModel->fileInfo(index).absoluteFilePath()))) {
-        qWarning("Note opening failed");
+    // TODO: check if file or directory
+    if (fsModel->fileInfo(index).isFile()) {
+        if (switchNote(QDir(fsModel->fileInfo(index).absoluteFilePath()))) {
+            return;
+        }
+        qWarning("Deltanote::on_treeView_clicked(): Note opening failed");
+        return;
+    } else if (fsModel->fileInfo(index).isDir()) {
+        return;
     }
+    qDebug("Deltanote::on_treeView_clicked(): Could not determine file or "
+           "folder");
 }
 
 /*!

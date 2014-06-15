@@ -79,7 +79,7 @@
            <bool>true</bool>
           </property>
           <property name="indentation">
-           <number>4</number>
+           <number>18</number>
           </property>
           <property name="rootIsDecorated">
            <bool>true</bool>
