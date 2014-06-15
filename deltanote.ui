@@ -158,8 +158,15 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>20</height>
+          <height>28</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
         </property>
         <property name="placeholderText">
          <string/>
@@ -180,7 +187,7 @@
      <x>0</x>
      <y>0</y>
      <width>640</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
