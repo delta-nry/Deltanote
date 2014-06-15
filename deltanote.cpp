@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTextStream>
 #include <QDir>
 #include <QDateTime>
+#include <QShortcut>
 
 #include "deltanote.h"
 #include "ui_deltanote.h"
@@ -44,18 +45,22 @@ Deltanote::Deltanote(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Deltanote)
 {
-    // NOTE: Consider changing to enum class for C++11
     enum TreeViewfsModelColumns {TVFSMC_NAME, TVFSMC_SIZE, TVFSMC_TYPE,
                                  TVFSMC_DATE_MODIFIED};
+
+    // Add custom-defined keyboard shortcuts
+    new QShortcut(QKeySequence(tr("Ctrl+Q", "Quit")), this, SLOT(close()));
+    new QShortcut(QKeySequence(tr("Ctrl+W", "Quit")), this, SLOT(close()));
+
+    // Setup UI
     ui->setupUi(this);
     // Set initial splitter ratio
     ui->splitter_2->setStretchFactor(1,1);
 
+    // Set up sidebar note picker
     fsModel = new QFileSystemModel(this);
     fsModel->setReadOnly(true);
     fsModel->setRootPath(getBaseNotePath());
-
-    // Set up UI elements
     ui->treeView->setModel(fsModel);
     ui->treeView->setRootIndex(fsModel->index(getBaseNotePath()));
     ui->treeView->hideColumn(TVFSMC_SIZE);
@@ -65,7 +70,7 @@ Deltanote::Deltanote(QWidget *parent) :
     QString openSettingsPath = getLastNoteSettingsPath();
     if (!openFromFile(openSettingsPath)) {
         // Auto-load failed; attempt to create default note "New Note" in
-        // BaseRootPath if it does not exist, then open it
+        // [HOME]/.deltanote if it does not exist, then open it
         if (!switchNote(QDir(getBaseNotePath() + "/New Note"))) {
             qFatal("Initialization note loading failed");
             QApplication::quit();
